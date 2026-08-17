@@ -4,6 +4,7 @@ const express = require("express");
 const cors = require("cors");
 const session = require("express-session");
 
+const db = require("./db");
 const authRoutes = require("./routes/auth");
 const clientRoutes = require("./routes/clients");
 const platformRoutes = require("./routes/platforms");
@@ -63,6 +64,19 @@ if (isProd) {
   });
 }
 
-app.listen(PORT, () => {
-  console.log(`EnspireFX credentials server listening on http://localhost:${PORT}`);
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({ error: "Internal server error" });
 });
+
+db.init()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`EnspireFX credentials server listening on http://localhost:${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("Failed to initialize database:", err);
+    process.exit(1);
+  });

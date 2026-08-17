@@ -4,6 +4,7 @@ const PDFDocument = require("pdfkit");
 const db = require("../db");
 const { requireAuth } = require("../auth");
 const { decrypt } = require("../crypto");
+const asyncRoute = require("../asyncRoute");
 
 const router = express.Router();
 router.use(requireAuth);
@@ -91,17 +92,18 @@ const TYPE_LABELS = {
   other: "Other",
 };
 
-router.get("/clients/:clientId/pdf", (req, res) => {
-  const client = db.prepare("SELECT * FROM clients WHERE id = ?").get(req.params.clientId);
-  if (!client) return res.status(404).json({ error: "Client not found" });
+router.get(
+  "/clients/:clientId/pdf",
+  asyncRoute(async (req, res) => {
+    const client = await db.get("SELECT * FROM clients WHERE id = ?", [req.params.clientId]);
+    if (!client) return res.status(404).json({ error: "Client not found" });
 
-  const platforms = db
-    .prepare(
-      "SELECT * FROM platforms WHERE client_id = ? ORDER BY sort_order ASC, created_at ASC"
-    )
-    .all(client.id);
+    const platforms = await db.all(
+      "SELECT * FROM platforms WHERE client_id = ? ORDER BY sort_order ASC, created_at ASC",
+      [client.id]
+    );
 
-  const doc = new PDFDocument({
+    const doc = new PDFDocument({
     size: "A4",
     margins: { top: 48, bottom: 112, left: 48, right: 48 },
     bufferPages: true,
@@ -221,7 +223,8 @@ router.get("/clients/:clientId/pdf", (req, res) => {
     drawFooter(doc, i - pageRange.start + 1, pageRange.count);
   }
 
-  doc.end();
-});
+    doc.end();
+  })
+);
 
 module.exports = router;
