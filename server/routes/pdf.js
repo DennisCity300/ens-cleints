@@ -18,12 +18,13 @@ function registerFonts(doc) {
   doc.registerFont("PlexItalic", path.join(FONT_DIR, "IBMPlexSans-Italic.ttf"));
 }
 
-const BRAND_BLUE = "#1a73e8";
-const TEXT_PRIMARY = "#202124";
-const TEXT_SECONDARY = "#5f6368";
+const TEXT_COLOR = "#000000";
 const BORDER = "#dadce0";
 
 const LOGO_PATH = path.join(__dirname, "..", "..", "client", "public", "logo.png");
+
+const WEBSITE_LABEL = "enspirefx.com";
+const WEBSITE_URL = "https://enspirefx.com";
 
 const COMPANY = {
   tagline: "EnspireFX Websites — Best Web Designer in Ghana",
@@ -48,27 +49,29 @@ function drawFooter(doc, pageNum, pageCount) {
   doc.strokeColor(BORDER).lineWidth(1).moveTo(left, y).lineTo(right, y).stroke();
   y += 10;
 
-  doc.fillColor(BRAND_BLUE).font("PlexSemiBold").fontSize(8.5).text(COMPANY.tagline, left, y, { lineBreak: false });
+  doc.fillColor(TEXT_COLOR).font("PlexSemiBold").fontSize(8.5).text(COMPANY.tagline, left, y, { lineBreak: false });
   y += 12;
-  doc.fillColor(TEXT_SECONDARY).font("Plex").fontSize(7).text(COMPANY.accra, left, y, { width, lineBreak: false });
+  doc.fillColor(TEXT_COLOR).font("Plex").fontSize(7).text(COMPANY.accra, left, y, { width, lineBreak: false });
   y += 10;
-  doc.fillColor(TEXT_SECONDARY).font("Plex").fontSize(7).text(COMPANY.tema, left, y, { width, lineBreak: false });
+  doc.fillColor(TEXT_COLOR).font("Plex").fontSize(7).text(COMPANY.tema, left, y, { width, lineBreak: false });
   y += 11;
 
+  const contactLine = `${COMPANY.phone}   ·   ${COMPANY.email}   ·   ${WEBSITE_LABEL}`;
+  doc.fillColor(TEXT_COLOR).font("PlexMedium").fontSize(7.5).text(contactLine, left, y, { lineBreak: false });
   doc
-    .fillColor(TEXT_SECONDARY)
-    .font("PlexMedium")
-    .fontSize(7.5)
-    .text(`${COMPANY.phone}   ·   ${COMPANY.email}`, left, y, { lineBreak: false });
-  doc
-    .fillColor(TEXT_SECONDARY)
+    .fillColor(TEXT_COLOR)
     .font("Plex")
     .fontSize(7.5)
     .text(`Page ${pageNum} of ${pageCount}`, left, y, { width, align: "right", lineBreak: false });
+
+  // Make just the "enspirefx.com" part of the line clickable.
+  const prefixWidth = doc.font("PlexMedium").fontSize(7.5).widthOfString(contactLine.slice(0, contactLine.lastIndexOf(WEBSITE_LABEL)));
+  const linkWidth = doc.font("PlexMedium").fontSize(7.5).widthOfString(WEBSITE_LABEL);
+  doc.link(left + prefixWidth, y, linkWidth, 10, WEBSITE_URL);
   y += 11;
 
   doc
-    .fillColor(TEXT_SECONDARY)
+    .fillColor(TEXT_COLOR)
     .font("PlexItalic")
     .fontSize(6.5)
     .text("Confidential — for internal EnspireFX use only. Do not forward without authorization.", left, y, {
@@ -115,38 +118,31 @@ router.get(
   doc.pipe(res);
   registerFonts(doc);
 
-  // Header
+  // Header — just the mark, no app-name label
   const headerTop = doc.y;
   try {
-    doc.image(LOGO_PATH, doc.page.margins.left, headerTop, { width: 26, height: 26 });
+    doc.image(LOGO_PATH, doc.page.margins.left, headerTop, { width: 28, height: 28 });
   } catch {
     /* logo optional */
   }
-  doc
-    .fillColor(BRAND_BLUE)
-    .font("PlexSemiBold")
-    .fontSize(10)
-    .text("ENSPIREFX CLIENT ACCESS CREDENTIALS", doc.page.margins.left + 36, headerTop + 8, {
-      characterSpacing: 0.5,
-    });
 
   doc.x = doc.page.margins.left;
-  doc.y = headerTop + 26;
+  doc.y = headerTop + 28;
   doc.moveDown(1.2);
   doc
-    .fillColor(TEXT_PRIMARY)
+    .fillColor(TEXT_COLOR)
     .font("PlexBold")
     .fontSize(22)
     .text(client.name);
 
   if (client.website) {
     doc.moveDown(0.1);
-    doc.fillColor(TEXT_SECONDARY).font("Plex").fontSize(11).text(client.website);
+    doc.fillColor(TEXT_COLOR).font("Plex").fontSize(11).text(client.website);
   }
 
   doc.moveDown(0.2);
   doc
-    .fillColor(TEXT_SECONDARY)
+    .fillColor(TEXT_COLOR)
     .font("Plex")
     .fontSize(9)
     .text(`Generated ${new Date().toLocaleString()}`);
@@ -161,12 +157,12 @@ router.get(
   doc.moveDown(1);
 
   if (client.notes) {
-    doc.fillColor(TEXT_SECONDARY).font("PlexItalic").fontSize(10).text(client.notes);
+    doc.fillColor(TEXT_COLOR).font("PlexItalic").fontSize(10).text(client.notes);
     doc.moveDown(1);
   }
 
   if (platforms.length === 0) {
-    doc.fillColor(TEXT_SECONDARY).font("Plex").fontSize(11).text("No platforms have been added for this client yet.");
+    doc.fillColor(TEXT_COLOR).font("Plex").fontSize(11).text("No platforms have been added for this client yet.");
   }
 
   platforms.forEach((p, idx) => {
@@ -176,8 +172,8 @@ router.get(
 
     const typeLabel = TYPE_LABELS[p.platform_type] || p.platform_type || "Other";
 
-    doc.fillColor(BRAND_BLUE).font("PlexSemiBold").fontSize(13).text(p.label);
-    doc.fillColor(TEXT_SECONDARY).font("Plex").fontSize(9).text(typeLabel.toUpperCase(), { characterSpacing: 0.4 });
+    doc.fillColor(TEXT_COLOR).font("PlexSemiBold").fontSize(13).text(p.label);
+    doc.fillColor(TEXT_COLOR).font("Plex").fontSize(9).text(typeLabel.toUpperCase(), { characterSpacing: 0.4 });
     doc.moveDown(0.35);
 
     const rows = [];
@@ -190,12 +186,12 @@ router.get(
     rows.forEach(([label, value]) => {
       const startY = doc.y;
       doc
-        .fillColor(TEXT_SECONDARY)
+        .fillColor(TEXT_COLOR)
         .font("PlexMedium")
         .fontSize(10)
         .text(label, doc.page.margins.left, startY, { width: labelWidth, continued: false });
       doc
-        .fillColor(TEXT_PRIMARY)
+        .fillColor(TEXT_COLOR)
         .font("Plex")
         .fontSize(10)
         .text(value, doc.page.margins.left + labelWidth, startY, {

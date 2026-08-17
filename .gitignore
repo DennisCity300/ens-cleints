@@ -1,5 +1,11 @@
 node_modules/
 .env
+
+# Generated on Windows locally — committing it breaks Render's build via a
+# known npm bug where cross-platform optional deps (Rollup's native binary)
+# don't get resolved correctly (npm/cli#4828). Let each environment resolve
+# its own lockfile instead.
+package-lock.json
 server/data/*.db
 server/data/*.db-journal
 server/data/*.db-wal
